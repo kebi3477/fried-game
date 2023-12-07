@@ -29,7 +29,7 @@ const render = Render.create({
 const runner = Runner.create();
 
 const ground = Bodies.rectangle(MAX_WIDTH / 2, MAX_HEIGHT, MAX_WIDTH, WALL_WIDTH, { isStatic: true });
-const line = Bodies.rectangle(MAX_WIDTH / 2, 100, MAX_WIDTH, WALL_WIDTH, { isStatic: true, isSensor: true });
+const line = Bodies.rectangle(MAX_WIDTH / 2, 100, MAX_WIDTH, WALL_WIDTH, { name: 'line', isStatic: true, isSensor: true });
 const leftWall = Bodies.rectangle(MAX_LEFT, MAX_HEIGHT / 2, WALL_WIDTH, MAX_HEIGHT, { isStatic: true });
 const rightWall = Bodies.rectangle(MAX_RIGHT, MAX_HEIGHT / 2, WALL_WIDTH, MAX_HEIGHT, { isStatic: true });
 
@@ -60,6 +60,7 @@ const createCircle = () => {
 Events.on(mouseConstraint, 'mousedown', (event) => {
     if (!isMouseDown) {
         isMouseDown = true;
+        World.remove(engine.world, mouseConstraint);
     }
 });
 
@@ -69,22 +70,26 @@ Events.on(mouseConstraint, 'mouseup', (event) => {
         draggableCircle = null;
         isMouseDown = false;
         setTimeout(createCircle, 1000);
+        World.add(engine.world, mouseConstraint);
     }
 })
 
 Events.on(engine, 'beforeUpdate', (event) => {
     if (draggableCircle && isMouseDown) {
-        Body.setPosition(draggableCircle, { x: mouse.position.x, y: START_CIRCLE_Y });
+        const radius = draggableCircle.circleRadius;
+        const x = mouse.position.x + radius > MAX_RIGHT ? MAX_RIGHT - radius : (mouse.position.x <= MAX_LEFT + radius ? MAX_LEFT + radius : mouse.position.x);
+        Body.setPosition(draggableCircle, { x: x, y: START_CIRCLE_Y });
     }
 });
 
 Events.on(engine, 'collisionStart', (event) => {
     const pairs = event.pairs;
-  
-    for (let i = 0; i < pairs.length; i++) {
-        const pair = pairs[i];
-        
-        if (pair.bodyA.circleRadius === pair.bodyB.circleRadius) {
+    pairs.forEach(pair => {
+        if (pair.bodyA.config === undefined || pair.bodyB.config === undefined) {
+            return;
+        }
+
+        if (pair.bodyA.config.index === pair.bodyB.config.index) {
             const config = circlesConfig[pair.bodyA.config.index];
             const newRadius = config.size;
 
@@ -100,7 +105,7 @@ Events.on(engine, 'collisionStart', (event) => {
             World.remove(engine.world, [pair.bodyA, pair.bodyB]);
             World.add(engine.world, [mergedCircle]);
         }
-    }
+    });
 });
 
 World.add(engine.world, [ground, line, leftWall, rightWall, mouseConstraint]);
