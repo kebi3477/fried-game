@@ -1,13 +1,12 @@
-import circle from '../config/circles.json.js';
+import circlesConfig from '../config/circles.json.js';
 const { Engine, Render, World, Bodies, Runner, Events } = Matter;
 
+const RESTITUTION = 0.2
 const MAX_LEFT = 0;
 const MAX_RIGHT = 400;
 const MAX_WIDTH = 400;
 const MAX_HEIGHT = 800;
 const WALL_WIDTH = 10;
-
-console.log(circle);
 
 const engine = Engine.create({
     gravity: {
@@ -36,8 +35,8 @@ const circles = [];
 
 document.addEventListener('click', (event) => {
     const x = event.clientX;
-    const y = event.clientY;
-    const circle = Bodies.circle(x, 20, 30, { restitution: 1, render: { fillStyle: getRandomColor() } });
+    const circle = Bodies.circle(x, 20, circlesConfig[0].size, { restitution: RESTITUTION, render: { fillStyle: circlesConfig[0].color } });
+    circle.config = circlesConfig[0];
     circles.push(circle);
     World.add(engine.world, [circle]);
 });
@@ -47,27 +46,27 @@ Events.on(engine, 'collisionStart', (event) => {
   
     for (let i = 0; i < pairs.length; i++) {
         const pair = pairs[i];
-
+        
         if (pair.bodyA.circleRadius === pair.bodyB.circleRadius) {
-            console.log(pair.bodyA.circleRadius);
-            const newRadius = (pair.bodyA.circleRadius) * 1.5;
+            const config = circlesConfig[pair.bodyA.config.index];
+            const newRadius = config.size;
 
             const newX = (pair.bodyA.position.x + pair.bodyB.position.x) / 2;
             const newY = (pair.bodyA.position.y + pair.bodyB.position.y) / 2;
 
             const mergedCircle = Bodies.circle(newX, newY, newRadius, {
-                restitution: 1,
-                render: { fillStyle: getRandomColor() }
+                restitution: RESTITUTION,
+                render: { fillStyle: config.color }
             });
 
+            mergedCircle.config = config;
             World.remove(engine.world, [pair.bodyA, pair.bodyB]);
-
             World.add(engine.world, [mergedCircle]);
         }
     }
 });
 
-World.add(engine.world, [ground, leftWall, rightWall    ]);
+World.add(engine.world, [ground, leftWall, rightWall ]);
 
 Render.run(render);
 Runner.run(runner, engine);
