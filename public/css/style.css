@@ -1,8 +1,15 @@
 body {
     margin: 0;
     overflow: hidden;
+    position: relative;
 }
 
 canvas {
     display: block;
+}
+
+.score {
+    position: absolute;
+    right: 10px;
+    top: 10px;
 }

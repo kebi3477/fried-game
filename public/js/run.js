@@ -8,7 +8,7 @@ const MAX_LEFT = 0;
 const MAX_RIGHT = 400;
 const MAX_WIDTH = 400;
 const MAX_HEIGHT = 800;
-const WALL_WIDTH = 10;
+const WALL_WIDTH = 5;
 const LINE_HEIGHT = 100;
 
 const engine = Engine.create({
@@ -28,16 +28,6 @@ const render = Render.create({
     }
 });
 const runner = Runner.create();
-
-const ground = Bodies.rectangle(MAX_WIDTH / 2, MAX_HEIGHT, MAX_WIDTH, WALL_WIDTH, { isStatic: true });
-const line = Bodies.rectangle(MAX_WIDTH / 2, LINE_HEIGHT, MAX_WIDTH, WALL_WIDTH, { label: 'line', isStatic: true, isSensor: true });
-const leftWall = Bodies.rectangle(MAX_LEFT, MAX_HEIGHT / 2, WALL_WIDTH, MAX_HEIGHT, { isStatic: true });
-const rightWall = Bodies.rectangle(MAX_RIGHT, MAX_HEIGHT / 2, WALL_WIDTH, MAX_HEIGHT, { isStatic: true });
-
-let draggableCircle = null;
-let isMouseDown = false;
-let isGameOver = false;
-
 const mouse = Mouse.create(render.canvas);
 const mouseConstraint = MouseConstraint.create(engine, {
     mouse: mouse,
@@ -48,6 +38,56 @@ const mouseConstraint = MouseConstraint.create(engine, {
         }
     } 
 })
+
+const scoreDOM = document.querySelector('.score');
+
+let draggableCircle = null;
+let isMouseDown = false;
+let isGameOver = false;
+let score = 0;
+
+const initWorld = () => {
+    const ground = Bodies.rectangle(MAX_WIDTH / 2, MAX_HEIGHT, MAX_WIDTH, WALL_WIDTH, { 
+        isStatic: true 
+    });
+    const background = Bodies.rectangle(MAX_WIDTH / 2, MAX_HEIGHT - 190, MAX_WIDTH, MAX_HEIGHT, { 
+        isStatic: true, 
+        isSensor: true, 
+        render: { 
+            sprite: { 
+                texture: 'images/background.png', 
+                xScale: 0.19, 
+                yScale: 0.1
+            },
+            zIndex: -1,
+        }
+    })
+    const pan = Bodies.rectangle(MAX_WIDTH / 2, MAX_HEIGHT, MAX_WIDTH, 50, { 
+        isStatic: true,
+        render: {
+            fillStyle: 'transparent'
+        }
+    });
+    const line = Bodies.rectangle(MAX_WIDTH / 2, LINE_HEIGHT, MAX_WIDTH, WALL_WIDTH, { 
+        label: 'line', 
+        isStatic: true, 
+        isSensor: true 
+    });
+    const leftWall = Bodies.rectangle(MAX_LEFT, MAX_HEIGHT / 2, WALL_WIDTH, MAX_HEIGHT, { 
+        isStatic: true,
+        render: {
+            fillStyle: 'transparent'
+        }
+    });
+    const rightWall = Bodies.rectangle(MAX_RIGHT, MAX_HEIGHT / 2, WALL_WIDTH, MAX_HEIGHT, { 
+        isStatic: true,
+        render: {
+            fillStyle: 'transparent'
+        }
+    });
+
+    World.add(engine.world, [ground, line, leftWall, rightWall, pan, background, mouseConstraint]);
+}
 
 const createCircle = () => {
     if (isGameOver) {
@@ -111,6 +151,11 @@ const fadeEffect = (body) => {
     return animateFade;
 };
 
+const setScore = newScore => {
+    score = newScore;
+    scoreDOM.innerText = score
+}
+
 Events.on(mouseConstraint, 'mousedown', (event) => {
     if (!isMouseDown) {
         isMouseDown = true;
@@ -155,7 +200,14 @@ Events.on(engine, 'collisionStart', (event) => {
             return;
         }
 
+        if (bodyA.isMerge || bodyB.isMerge) {
+            return;
+        }
+
         if (bodyA.config.index === bodyB.config.index) {
+            bodyA.isMerge = true;
+            bodyB.isMerge = true;
+
             const config = circlesConfig[bodyA.config.index];
             const newRadius = config.size;
 
@@ -176,6 +228,7 @@ Events.on(engine, 'collisionStart', (event) => {
                 render: { sprite: { texture: `images/remove_effect.png`, xScale: config.scale, yScale: config.scale, opacity: 1 }}
             })
 
+            setScore(score + 10);
             mergedCircle.config = config;
             World.remove(engine.world, [bodyA, bodyB]);
             World.add(engine.world, [mergedCircle, effectA]);   
@@ -184,8 +237,7 @@ Events.on(engine, 'collisionStart', (event) => {
     });
 });
 
-World.add(engine.world, [ground, line, leftWall, rightWall, mouseConstraint]);
-
+initWorld();
 Render.run(render);
 Runner.run(runner, engine);
 
