@@ -96,6 +96,21 @@ const clearAllCircles = () => {
     });
 }
 
+const fadeEffect = (body) => {
+    const animateFade = () => {
+        if (body.render.opacity > 0) {
+            const newOpacity = body.render.opacity - 0.05; 
+            body.render.opacity = newOpacity < 0 ? 0 : newOpacity;
+            console.log(body.render.opacity);
+            requestAnimationFrame(animateFade);
+        } else {
+            World.remove(engine.world, body);
+        }
+    };
+
+    return animateFade;
+};
+
 Events.on(mouseConstraint, 'mousedown', (event) => {
     if (!isMouseDown) {
         isMouseDown = true;
@@ -153,9 +168,18 @@ Events.on(engine, 'collisionStart', (event) => {
                 render: { sprite: { texture: `images/${config.image}`, xScale: config.scale, yScale: config.scale },  }
             });
 
+            const effectA = Bodies.circle(newX, newY, newRadius, {
+                label: 'Effect',
+                isStatic: true,
+                isSensor: true,
+                angle: bodyA.angle,
+                render: { sprite: { texture: `images/remove_effect.png`, xScale: config.scale, yScale: config.scale, opacity: 1 }}
+            })
+
             mergedCircle.config = config;
             World.remove(engine.world, [bodyA, bodyB]);
-            World.add(engine.world, [mergedCircle]);            
+            World.add(engine.world, [mergedCircle, effectA]);   
+            requestAnimationFrame(fadeEffect(effectA));         
         }
     });
 });
