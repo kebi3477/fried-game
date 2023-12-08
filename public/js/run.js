@@ -49,7 +49,12 @@ const mouseConstraint = MouseConstraint.create(engine, {
 })
 
 const createCircle = () => {
-    const circle = Bodies.circle(MAX_WIDTH / 2, START_CIRCLE_Y, circlesConfig[0].size, { isSleeping: true, restitution: RESTITUTION, render: { fillStyle: circlesConfig[0].color } });
+    const circle = Bodies.circle(MAX_WIDTH / 2, START_CIRCLE_Y, circlesConfig[0].size, { 
+        isSleeping: true, 
+        restitution: RESTITUTION, 
+        render: {
+            sprite: { texture: `images/${circlesConfig[0].image}`, xScale: 0.04, yScale: 0.04 }, 
+        } });
 
     draggableCircle = circle;
     circle.config = circlesConfig[0];
@@ -69,7 +74,7 @@ Events.on(mouseConstraint, 'mouseup', (event) => {
         draggableCircle.isSleeping = false;
         draggableCircle = null;
         isMouseDown = false;
-        setTimeout(createCircle, 1000);
+        setTimeout(createCircle, 10);
         World.add(engine.world, mouseConstraint);
     }
 })
@@ -98,7 +103,7 @@ Events.on(engine, 'collisionStart', (event) => {
 
             const mergedCircle = Bodies.circle(newX, newY, newRadius, {
                 restitution: RESTITUTION,
-                render: { fillStyle: config.color }
+                render: { sprite: { texture: `images/${config.image}`, xScale: config.scale, yScale: config.scale },  }
             });
 
             mergedCircle.config = config;
