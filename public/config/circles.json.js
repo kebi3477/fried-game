@@ -1,5 +1,5 @@
 export default [
-  { "index": 1, "id": "first", "size": 20, "color": "#FF0000", "image": "first.png" , "scale": 0.04 },
+  { "index": 1, "id": "first", "size": 20, "color": "#FF0000", "image": "first.png" , "scale": 0.15 },
   { "index": 2, "id": "second", "size": 30, "color": "#00FF00", "image": "second.png" , "scale": 0.05 },
   { "index": 3, "id": "third", "size": 40, "color": "#0000FF", "image": "third.png" , "scale": 0.06 },
   { "index": 4, "id": "fourth", "size": 50, "color": "#FFFF00", "image": "fourth.png" , "scale": 0.07 },

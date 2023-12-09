@@ -16,7 +16,8 @@ export const initSVG = () => {
 }
 
 export const get = (id) => {
-    let svg = JSON.parse(localStorage.getItem(id));
+    const config = circlesConfig[0];
+    const svg = JSON.parse(localStorage.getItem(id));
     const bodySVG = Bodies.fromVertices(MAX_WIDTH / 2, START_CIRCLE_Y, [ svg ], {
         label: 'Circle',
         isSleeping: true, 
@@ -31,6 +32,33 @@ export const get = (id) => {
         add : (engine) => World.add(engine.world, [bodySVG]),
         delete : (engine) => World.remove(engine.world, [bodySVG])
     });
-    Body.scale(bodySVG, 0.2, 0.2);
+    Body.scale(bodySVG, config.scale, config.scale);
     return bodySVG;
 }
+
+export const addEffect = (engine, x, y, radius, angle, scale) => {
+    const mergeEffect = Bodies.circle(x, y, radius, {
+        label: 'Effect',
+        isStatic: true,
+        isSensor: true,
+        angle: angle,
+        render: { sprite: { texture: `images/remove_effect.png`, xScale: scale, yScale: scale, opacity: 1 }}
+    })
+
+    World.add(engine.world, [mergeEffect]);     
+    requestAnimationFrame(fadeEffect(engine, mergeEffect));     
+}
+
+const fadeEffect = (engine, body) => {
+    const animateFade = () => {
+        if (body.render.opacity > 0) {
+            const newOpacity = body.render.opacity - 0.05; 
+            body.render.opacity = newOpacity < 0 ? 0 : newOpacity;
+            requestAnimationFrame(animateFade);
+        } else {
+            World.remove(engine.world, body);
+        }
+    };
+
+    return animateFade;
+};

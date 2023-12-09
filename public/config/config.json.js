@@ -9,6 +9,4 @@ export const WALL_WIDTH = 5;
 export const LINE_HEIGHT = 100;
 
 let id = 10;
-export const getId = () => {
-    return id++;
-}
+export const getId = () => id++;
