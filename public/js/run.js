@@ -1,15 +1,7 @@
 import circlesConfig from '../config/circles.json.js';
-const { Engine, Render, World, Bodies, Runner, Events, MouseConstraint, Mouse, Body, Composite } = Matter;
-
-const START_CIRCLE_Y = 40;
-const GRAVITY = 2;
-const RESTITUTION = 0.2
-const MAX_LEFT = 0;
-const MAX_RIGHT = 400;
-const MAX_WIDTH = 400;
-const MAX_HEIGHT = 800;
-const WALL_WIDTH = 5;
-const LINE_HEIGHT = 100;
+import { START_CIRCLE_Y, GRAVITY, RESTITUTION, MAX_LEFT, MAX_RIGHT, MAX_WIDTH, MAX_HEIGHT, WALL_WIDTH, LINE_HEIGHT } from '../config/config.json.js';
+import * as circles from './libs/circles.js';
+const { Engine, Render, World, Bodies, Runner, Events, MouseConstraint, Mouse, Body, Composite, Svg, Vertices } = Matter;
 
 const engine = Engine.create({
     gravity: {
@@ -94,30 +86,23 @@ const createCircle = () => {
         return;
     }
 
-    const circle = Bodies.circle(MAX_WIDTH / 2, START_CIRCLE_Y, circlesConfig[0].size, { 
-        label: 'Circle',
-        isSleeping: true, 
-        restitution: RESTITUTION, 
-        render: {
-            sprite: { texture: `images/${circlesConfig[0].image}`, xScale: 0.04, yScale: 0.04 }, 
-        } 
-    });
+    const circle = circles.get('first');
 
     draggableCircle = circle;
-    circle.config = circlesConfig[0];
-    World.add(engine.world, [circle]);
+    
+    circle.add(engine);
 }
 
 const checkGameOver = () => {
     const circles = engine.world.bodies.filter(body => body.label === 'Circle');
 
-    circles.forEach(circle => {
-        if (!isGameOver && !circle.isSleeping && circle.position.y - LINE_HEIGHT + (WALL_WIDTH / 2) <= 0) {
-            alert("Game Over");
-            isGameOver = true;
-            clearAllCircles();
-        } 
-    })
+    // circles.forEach(circle => {
+    //     if (!isGameOver && !circle.isSleeping && circle.position.y - LINE_HEIGHT + (WALL_WIDTH / 2) <= 0) {
+    //         alert("Game Over");
+    //         isGameOver = true;
+    //         clearAllCircles();
+    //     } 
+    // })
 }
 
 const clearAllCircles = () => {
@@ -141,7 +126,6 @@ const fadeEffect = (body) => {
         if (body.render.opacity > 0) {
             const newOpacity = body.render.opacity - 0.05; 
             body.render.opacity = newOpacity < 0 ? 0 : newOpacity;
-            console.log(body.render.opacity);
             requestAnimationFrame(animateFade);
         } else {
             World.remove(engine.world, body);
@@ -199,11 +183,11 @@ Events.on(engine, 'collisionStart', (event) => {
         if (bodyA.config === undefined || bodyB.config === undefined) {
             return;
         }
-
+        
         if (bodyA.isMerge || bodyB.isMerge) {
             return;
         }
-
+        
         if (bodyA.config.index === bodyB.config.index) {
             bodyA.isMerge = true;
             bodyB.isMerge = true;
@@ -220,24 +204,27 @@ Events.on(engine, 'collisionStart', (event) => {
                 render: { sprite: { texture: `images/${config.image}`, xScale: config.scale, yScale: config.scale },  }
             });
 
-            const effectA = Bodies.circle(newX, newY, newRadius, {
+            const mergeEffect = Bodies.circle(newX, newY, newRadius, {
                 label: 'Effect',
                 isStatic: true,
                 isSensor: true,
                 angle: bodyA.angle,
                 render: { sprite: { texture: `images/remove_effect.png`, xScale: config.scale, yScale: config.scale, opacity: 1 }}
             })
-
+            
             setScore(score + 10);
             mergedCircle.config = config;
-            World.remove(engine.world, [bodyA, bodyB]);
-            World.add(engine.world, [mergedCircle, effectA]);   
-            requestAnimationFrame(fadeEffect(effectA));         
+
+            bodyA.delete(engine);
+            bodyB.delete(engine);
+            World.add(engine.world, [mergedCircle, mergeEffect]); 
+            requestAnimationFrame(fadeEffect(mergeEffect));         
         }
     });
 });
 
 initWorld();
+circles.initSVG();
 Render.run(render);
 Runner.run(runner, engine);
 
