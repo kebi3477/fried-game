@@ -109,13 +109,7 @@ Events.on(engine, 'collisionStart', (event) => {
             const newX = (bodyA.position.x + bodyB.position.x) / 2;
             const newY = (bodyA.position.y + bodyB.position.y) / 2;
 
-            const mergedCircle = Bodies.circle(newX, newY, newRadius, {
-                label: 'Circle',
-                restitution: RESTITUTION,
-                render: { sprite: { texture: `images/${config.image}`, xScale: config.scale, yScale: config.scale },  }
-            });
-
-            mergedCircle.config = config;
+            const mergedCircle = circles.get(config.id, newX, newY);
 
             if (bodyA.delete) bodyA.delete(engine);
             if (bodyB.delete) bodyB.delete(engine);
@@ -134,3 +128,13 @@ Render.run(render);
 Runner.run(runner, engine);
 
 createCircle();
+let circle = circles.get('sixth');
+circle.add(engine);
+circle = circles.get('seventh');
+circle.add(engine);
+circle = circles.get('eighth');
+circle.add(engine);
+circle = circles.get('ninth');
+circle.add(engine);
+circle = circles.get('tenth');
+circle.add(engine);

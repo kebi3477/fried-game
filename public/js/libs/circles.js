@@ -15,25 +15,19 @@ export const initSVG = () => {
     })
 }
 
-export const get = (id) => {
-    const config = circlesConfig[0];
-    const svg = JSON.parse(localStorage.getItem(id));
-    const bodySVG = Bodies.fromVertices(MAX_WIDTH / 2, START_CIRCLE_Y, [ svg ], {
+export const get = (id, x=MAX_WIDTH / 2, y=START_CIRCLE_Y) => {
+    const config = circlesConfig.find(circle => circle.id === id);
+    const circle = Bodies.circle(x, y, config.size, {
         label: 'Circle',
-        isSleeping: true, 
-        restitution: RESTITUTION, 
-        render: {
-            fillStyle: '#fff', 
-            strokeStyle: '#000',
-            lineWidth: 2, 
-        },
-        config : circlesConfig[0],
+        isSleeping: id === 'first', 
+        restitution: RESTITUTION,
+        render: { sprite: { texture: `images/${config.image}`, xScale: config.scale, yScale: config.scale },  },
+        config : config,
         id : getId(),
-        add : (engine) => World.add(engine.world, [bodySVG]),
-        delete : (engine) => World.remove(engine.world, [bodySVG])
+        add : (engine) => World.add(engine.world, [circle]),
+        delete : (engine) => World.remove(engine.world, [circle])
     });
-    Body.scale(bodySVG, config.scale, config.scale);
-    return bodySVG;
+    return circle;
 }
 
 export const addEffect = (engine, x, y, radius, angle, scale) => {
